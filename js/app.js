@@ -1746,7 +1746,19 @@
   }
 
   /* ----------------------------- 启动 ----------------------------- */
+  /* 手机/窗口高度锁在真实可见区域，页面不再被拉成一长条 */
+  function fitAppHeight() {
+    const vv = window.visualViewport;
+    if (vv && vv.scale > 1.02) return;
+    let h = Math.round((vv && vv.height) || window.innerHeight || 0);
+    const shortSide = Math.min(window.screen.width || 9999, window.screen.height || 9999);
+    const touch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    if (touch && shortSide <= 620) h = Math.min(h, 790);
+    if (h > 240) document.documentElement.style.setProperty('--appvh', h + 'px');
+  }
+
   async function boot() {
+    fitAppHeight();
     bind();
     try {
       const saved = await kvGet('A');
@@ -1792,4 +1804,7 @@
   };
 
   window.addEventListener('DOMContentLoaded', boot);
+  window.addEventListener('resize', fitAppHeight);
+  window.addEventListener('orientationchange', () => setTimeout(fitAppHeight, 260));
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fitAppHeight);
 })();
