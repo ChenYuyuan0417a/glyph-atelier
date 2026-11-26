@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>字形工坊 · Glyph Atelier</title>
+<link rel="stylesheet" href="css/style.css?v=20261127i">
+</head>
+<body>
+<div class="grain"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark">字</div>
+    <div class="brand-txt">
+      <h1>字形工坊</h1>
+      <p>GLYPH ATELIER · 本地字体工作台</p>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="status-chip" id="chipA"><span class="dot a"></span><span>A · 未就位</span></div>
+    <div class="status-chip" id="chipB"><span class="dot b"></span><span>B · 未载入</span></div>
+    <button class="btn primary" id="btnExport" disabled>
+      <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+      导出 A 字体
+    </button>
+  </div>
+</header>
+
+<main class="shell">
+  <!-- ============ 左栏 ============ -->
+  <aside class="rail">
+    <section class="card" id="cardA">
+      <div class="card-label"><span>A</span> 系统字体 · SYSTEM</div>
+      <div class="card-title" id="aName">尚未就位</div>
+      <div class="meta-row"><span>文件</span><i class="lead"></i><b id="aFile">—</b></div>
+      <div class="meta-row"><span>格式</span><i class="lead"></i><b id="aFormat">—</b></div>
+      <div class="meta-row"><span>字面框</span><i class="lead"></i><b id="aUpem">—</b></div>
+      <div class="meta-row"><span>字面集</span><i class="lead"></i><b id="aFaces">—</b></div>
+      <div class="meta-row"><span>字符</span><i class="lead"></i><b id="aChars">—</b></div>
+      <div class="meta-row"><span>字形</span><i class="lead"></i><b id="aGlyphs">—</b></div>
+      <div class="meta-row"><span>结构</span><i class="lead"></i><b id="aShared">—</b></div>
+
+      <div class="field" id="aFaceField" hidden>
+        <label>编辑字面</label>
+        <div class="select-wrap">
+          <select id="aFaceSelect"></select>
+          <svg viewBox="0 0 24 24" width="13" height="13"><path d="M6 9l6 6 6-6" stroke="currentColor" fill="none" stroke-width="1.8"/></svg>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn ghost" id="btnSwapA">更换 A 字体</button>
+        <button class="btn ghost danger-text" id="btnWipe">清空 A 全部字符</button>
+      </div>
+      <p class="hint" id="aHint">系统默认字面：PingFang.ttc。载入后会自动记住，下次无需再导入。</p>
+    </section>
+
+    <section class="card" id="cardB">
+      <div class="card-label"><span>B</span> 替换字体 · SOURCE</div>
+      <button class="btn ghost wide" id="btnBImport">导入字体 B</button>
+      <p class="hint tight" id="bEmptyHint">还没导入 B 字体 · 支持 .ttf / .otf / .ttc，任意字面数与字符数</p>
+      <div id="bLoaded" hidden>
+        <div class="card-title" id="bName">—</div>
+        <div class="meta-row"><span>格式</span><i class="lead"></i><b id="bFormat">—</b></div>
+        <div class="meta-row"><span>字面</span><i class="lead"></i><b id="bFaces">—</b></div>
+        <div class="meta-row"><span>字符</span><i class="lead"></i><b id="bChars">—</b></div>
+        <div class="field" id="bFaceField" hidden>
+          <label>取用字面</label>
+          <div class="select-wrap">
+            <select id="bFaceSelect"></select>
+            <svg viewBox="0 0 24 24" width="13" height="13"><path d="M6 9l6 6 6-6" stroke="currentColor" fill="none" stroke-width="1.8"/></svg>
+          </div>
+        </div>
+        <div class="bulk-grid">
+          <button class="btn tiny" id="btnReplSel">换选中字</button>
+          <button class="btn tiny" id="btnReplAll">换全部重合</button>
+          <button class="btn tiny" id="btnReplEvery">换全部字符</button>
+          <button class="btn tiny ghost" id="btnReplClear">清除替换</button>
+        </div>
+        <div class="seg" id="bulkMode">
+          <button data-bulkmode="copy" class="on">复制字形</button>
+          <button data-bulkmode="replace">替换宽度</button>
+        </div>
+        <p class="hint tight" id="bulkStat">换选中字 / 换全部：用当前字形操作方式处理 B 的字形。</p>
+        <button class="btn ghost" id="btnSwapB">更换 B 字体</button>
+      </div>
+    </section>
+
+    <section class="card quiet" id="cardWrite">
+      <div class="card-label"><span>✎</span> 写字符 · WRITE</div>
+      <div class="writebox">
+        <div class="writebox-head"><span>写要换的字</span><i class="lead"></i><span class="mono" id="writeCount">0 字</span></div>
+        <textarea id="writeInput" rows="2" placeholder="在这里写要换的字，多个随意，如：永和九年" spellcheck="false"></textarea>
+        <div class="writebox-foot">
+          <span class="mono" id="writeInfo">—</span>
+          <button class="btn tiny" id="btnWriteSel">选中这些字</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card quiet" id="cardColl" hidden>
+      <div class="card-label"><span>≡</span> 合集 · COLLECTION</div>
+      <div class="card-title small" id="collTitle">—</div>
+      <p class="hint tight" id="collInfo">—</p>
+      <div class="bulk-grid two">
+        <button class="btn tiny" data-coll="copy">B 全部 → 合集复制</button>
+        <button class="btn tiny" data-coll="replace">B 全部 → 合集替换</button>
+      </div>
+      <button class="btn ghost danger-text wide" id="btnCollWipe">清空合集所有字面的字符</button>
+    </section>
+
+    <section class="card quiet oneshot">
+      <div class="card-label"><span>⚡</span> 一键成品 · ONE-SHOT</div>
+      <div class="card-title small">PingFang.ttc 作底，只上传 B</div>
+      <p class="hint tight" id="oneShotNote">把 PingFang.ttc 直接当 A 字体用。点下面的按钮：系统自动清空 A 里全部字符，再把 B 的全部字符整批复制进去，完了直接进导出。</p>
+      <button class="btn primary wide" id="btnOneShot">PingFang.ttc 一键换字 · 出成品</button>
+      <p class="hint tight">只改字符：文件名、格式、name 表、字重一个字节都不动。</p>
+    </section>
+
+    <section class="card quiet">
+      <div class="card-label"><span>!</span> 保留原则</div>
+      <p class="hint long">导出时 <b>字体名称、字重、字面信息与表结构原样保留</b>，只重写被改动字符的轮廓、宽度与行距。未触碰的字符按原始字节复制，一处不改。</p>
+      <div class="rule-list">
+        <span>name 表不动</span><span>OS/2 不动</span><span>GSUB / GDEF 不动</span><span>仅 glyf 与宽度变化</span>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ============ 主区 ============ -->
+  <section class="stage">
+    <div class="stage-head">
+      <div class="tabs">
+        <button class="tab active" data-tab="A">A 字符<span id="tabCountA">0</span></button>
+        <button class="tab" data-tab="B">B 字符<span id="tabCountB">0</span></button>
+      </div>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" width="15" height="15"><circle cx="11" cy="11" r="6.5" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="1.6"/></svg>
+        <input id="search" type="text" placeholder="搜索字符或码位，如 永 / 4E00 / 4E00-4E20">
+        <kbd>⌘K</kbd>
+      </div>
+    </div>
+
+    <div class="filter-row" id="filterRow">
+      <button class="pill active" data-filter="all">全部</button>
+      <button class="pill" data-filter="han">汉字</button>
+      <button class="pill" data-filter="latin">拉丁</button>
+      <button class="pill" data-filter="punct">标点符号</button>
+      <button class="pill" data-filter="edited">已修改</button>
+      <div class="seltools">
+        <span class="tip">长按定锚点 · 再点即连选</span>
+        <button class="mini" id="btnSelAll">全选结果</button>
+        <button class="mini" id="btnSelEvery">全选全部</button>
+        <button class="mini" id="btnSelNone">清空</button>
+      </div>
+    </div>
+
+    <div class="grid-wrap" id="gridWrap">
+      <div class="grid" id="grid"></div>
+      <div class="empty-hint" id="gridEmpty">
+        <div class="eh-glyph">字</div>
+        <p>先在左侧载入 A 字体</p>
+        <span>系统字面 PingFang.ttc 载入后会自动记住</span>
+      </div>
+      <div class="sentinel" id="sentinel"></div>
+    </div>
+
+    <div class="selection-bar" id="selBar">
+      <div class="sel-count"><b id="selNum">0</b> 个字符已选<span class="mono" id="selScope"></span></div>
+      <div class="sel-actions" id="selActionsA">
+        <button class="btn tiny" data-act="clearGlyph">清空字形</button>
+        <button class="btn tiny" data-act="restore">恢复原字形</button>
+        <button class="btn tiny ghost" data-act="deselect">取消选择</button>
+      </div>
+      <div class="sel-actions" id="selActionsB" hidden>
+        <button class="btn tiny" data-act="copyToA">复制到 A</button>
+        <button class="btn tiny" data-act="replaceA">替换 A 字符</button>
+        <button class="btn tiny ghost" data-act="deselect">取消选择</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 右栏 ============ -->
+  <aside class="inspector">
+    <div class="insp-head">
+      <div class="card-label"><span>✎</span> 字符属性 · GLYPH</div>
+      <div class="insp-chars" id="inspChars">未选择</div>
+    </div>
+
+    <div class="preview-box" id="previewBox">
+      <canvas id="previewCanvas"></canvas>
+      <div class="ph" id="previewPh" hidden><b>字</b><span>选一个字符看预览</span></div>
+    </div>
+    <div class="preview-cap" id="previewNote">预览 · 当前字体的字形</div>
+
+    <div class="panel">
+      <p class="hint tight">数字框边敲边生效，不用回车，整面所有字符立刻跟着变；间距要在多字排布上才看得出。</p>
+
+      <div class="slider-row">
+        <label>字体大小</label>
+        <input type="range" id="sScale" min="50" max="200" value="100" step="1">
+        <span class="num"><input type="number" id="nScale" min="50" max="200" step="1" value="100"><i>%</i></span>
+      </div>
+      <div class="slider-row">
+        <label>粗细</label>
+        <input type="range" id="sWeight" min="-80" max="160" value="0" step="1">
+        <span class="num"><input type="number" id="nWeight" min="-80" max="160" step="1" value="0"></span>
+      </div>
+      <div class="slider-row">
+        <label>字形间距</label>
+        <input type="range" id="sTrack" min="-120" max="300" value="0" step="1">
+        <span class="num"><input type="number" id="nTrack" min="-120" max="300" step="1" value="0"></span>
+      </div>
+      <div class="slider-row">
+        <label>浓淡</label>
+        <input type="range" id="sShade" min="25" max="100" value="100" step="1">
+        <span class="num"><input type="number" id="nShade" min="25" max="100" step="1" value="100"><i>%</i></span>
+      </div>
+      <div class="slider-row">
+        <label>上浮下沉</label>
+        <input type="range" id="sDy" min="-200" max="200" value="0" step="1">
+        <span class="num"><input type="number" id="nDy" min="-200" max="200" step="1" value="0"></span>
+      </div>
+      <div class="color-row">
+        <label>字符颜色</label>
+        <div class="swatches" id="swatches"></div>
+        <div class="color-input">
+          <input type="color" id="colorPick" value="#1c2126">
+          <input type="text" id="colorHex" value="">
+        </div>
+      </div>
+      <p class="hint tight">颜色写进 COLR/CPAL 色层，支持彩色的软件里能看到；iOS 系统字体本身不显示彩色字形，导出体积也会变大。</p>
+      <button class="btn ghost wide center-btn" id="btnCenter" aria-pressed="false">字形居中</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">整面设置</div>
+      <div class="slider-row">
+        <label>行距</label>
+        <input type="range" id="sLine" min="0" max="600" value="0" step="1">
+        <span class="num"><input type="number" id="nLine" min="0" max="600" step="1" value="0"></span>
+      </div>
+      <p class="hint tight">行距写进 hhea.lineGap，整面生效；单行预览看不出，导出的字体里排两行以上才显示。</p>
+    </div>
+
+    <div class="insp-actions">
+      <div class="insp-row">
+        <button class="btn ghost small" id="btnUndo">撤销上一步</button>
+        <button class="btn ghost small" id="btnResetAll">撤销全部编辑</button>
+      </div>
+    </div>
+
+    <section class="author-card">
+      <div class="card-label"><span>◈</span> 工具作者 · AUTHOR</div>
+      <div class="author-row">
+        <img class="avatar" src="assets/chen.jpg" alt="陈禹源">
+        <div class="who"><b>陈禹源</b><span>QQ 206723797</span></div>
+      </div>
+      <a class="author-row link" href="https://v.douyin.com/gM39yG54Sxs/" target="_blank" rel="noopener">
+        <img class="avatar" src="assets/taosu.jpg" alt="桃酥大王">
+        <div class="who"><b>桃酥大王 ↗</b><span>抖音号 ChenYuyuan0417a</span></div>
+      </a>
+      <a class="author-row link group" href="https://qun.qq.com/universal-share/share?ac=1&authKey=YDZzzI%2FfMaNwiRmFhPBSK9OpsUVnL%2B5hH3kB8vsA989I5aC6qtaJawjbGDPxJ0%2FG&busi_data=eyJncm91cENvZGUiOiIxMDYxOTQ1NDQ1IiwidG9rZW4iOiJOUFpINWsrdW5PVUY5ZVQyK3R0Z3VUd2xQblFoWEQzOUdUbDhvVzFsYkkrOWFpb2ZMNjEwU2pTMitLTE9IYmJHIiwidWluIjoiMjA2NzIzNzk3In0%3D&data=TH04pB09wh-1Wll02PlY9klTQP9zy7KBoAiwhzdelyFYMG8xh11cnKRn3fq1TQYWsNuqHublyAqRg_taAFTx-A&svctype=4&tempid=h5_group_info" target="_blank" rel="noopener">
+        <div class="avatar qq">Q</div>
+        <div class="who"><b>QQ 群 1061945445 ↗</b><span>点击加群 · 汤圆科技总部群</span></div>
+      </a>
+    </section>
+
+    <section class="author-card links-card">
+      <div class="card-label"><span>↗</span> 友情链接 · LINKS</div>
+      <a class="author-row link" href="https://chenyuyuan0417a.github.io/iphone-lock-font-tool/" target="_blank" rel="noopener">
+        <div class="avatar ext">16</div>
+        <div class="who"><b>苹果 16 系统 锁屏时间字体替换工具 ↗</b><span>iPhone 锁屏时间字体 · 网页版</span></div>
+      </a>
+      <a class="author-row link" href="https://chenyuyuan0417a.github.io/font-replace-tool/" target="_blank" rel="noopener">
+        <div class="avatar ext">SF</div>
+        <div class="who"><b>苹果英数字体 SFUI.ttf 替换工具 ↗</b><span>SF UI 英数字体替换 · 网页版</span></div>
+      </a>
+    </section>
+  </aside>
+</main>
+
+<!-- ============ 初始化遮罩 ============ -->
+<div class="onboard" id="onboard">
+  <div class="onboard-card">
+    <div class="ob-mark">字</div>
+    <h2>先让系统字体就位</h2>
+    <p>A 字体默认为 <b>PingFang.ttc</b>。选择一次之后会记在本机，下次打开无需再导入。</p>
+    <div class="dropzone big" id="dropA" hidden></div>
+    <p class="ob-note" id="onboardNote">未检测到已保存的字体</p>
+    <button class="btn primary" id="btnBootPick">选择 PingFang.ttc</button>
+  </div>
+</div>
+
+<!-- ============ 更换 A 字体确认 ============ -->
+<div class="modal" id="modalSwap">
+  <div class="modal-card">
+    <div class="modal-label">更换系统字面</div>
+    <h3 id="swapText">原 A 字体系统已经被设计为 PingFang.ttc 字体文件，你确认要换掉 A 字体的文件吗？</h3>
+    <p class="modal-sub">确认后请选择新的字体文件；取消则继续使用当前的 PingFang.ttc 默认字面。</p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="btnSwapCancel">取消</button>
+      <button class="btn danger" id="btnSwapConfirm">确认更换</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 导出 ============ -->
+<div class="modal" id="modalExport">
+  <div class="modal-card wide">
+    <div class="modal-label">导出 · EXPORT</div>
+    <h3 id="exportTitle">导出 A 字体</h3>
+    <div class="seg mode" id="expKind" hidden>
+      <button data-kind="ttc" class="on">整包 .ttc（全部字面）</button>
+      <button data-kind="ttf">单字面 .ttf</button>
+    </div>
+    <div class="export-grid">
+      <div class="export-row"><span>文件名</span><input id="expName" type="text"></div>
+      <div class="export-row"><span>容器格式</span><b id="expFormat">TrueType (.ttf)</b></div>
+      <div class="export-row"><span>字体名称</span><b id="expFamily">—</b></div>
+      <div class="export-row"><span>字数 / 字形</span><b id="expCounts">—</b></div>
+      <div class="export-row"><span>已改字符</span><b id="expEdited">—</b></div>
+    </div>
+    <p class="modal-sub" id="exportNote">name、OS/2、字重等表原样保留；未改动字符按原始字节写入。</p>
+    <div class="progress"><div class="bar" id="expBar"></div></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="btnExpCancel">取消</button>
+      <button class="btn primary" id="btnExpGo">生成并下载</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 全量清空确认 ============ -->
+<div class="modal" id="modalWipe">
+  <div class="modal-card">
+    <div class="modal-label danger">危险操作</div>
+    <h3 id="wipeTitle">删除 A 字体里面的全部字符？</h3>
+    <p class="modal-sub" id="wipeText">所有字形轮廓将被清空（宽度归零），字体名称与表结构保留。此操作可撤销。</p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="btnWipeCancel">取消</button>
+      <button class="btn danger" id="btnWipeConfirm">确认清空</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading" id="loading">
+  <div class="ld-ring"></div>
+  <div class="ld-text" id="loadText">解析字体中…</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileA" accept=".ttf,.otf,.ttc,.otc,font/*" hidden>
+<input type="file" id="fileB" accept=".ttf,.otf,.ttc,.otc,font/*" hidden>
+
+<script src="js/font-engine.js"></script>
+<script src="js/app.js?v=20261127i"></script>
+</body>
+</html>
