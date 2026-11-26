@@ -1,36 +1,13 @@
 name: Import site content
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  import:
+  noop:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Download and unpack if missing
-        run: |
-          if [ ! -f index.html ]; then
-            curl -fL --retry 3 --retry-delay 5 --max-time 300 -o site.zip "https://aka.doubaocdn.com/s/BHYkkHm8IH"
-            unzip -o -q site.zip -d .
-            rm -f site.zip
-          fi
-          ls -1
-          du -sh assets css js 2>/dev/null || true
-      - name: Commit content
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A index.html README.md css js assets
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: import site content [skip ci]"
-            git push
-          else
-            echo "nothing to commit"
-          fi
+      - run: echo "retired"
